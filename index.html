@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="bn">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>EBS-TEMPMAIL</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#05060a; --muted:#9aa7bd; --accent1:#7c3aed; --accent2:#06b6d4;
+    --accent-addr:#00d4ff; --card-radius:14px;
+    --toast-bg: rgba(0,0,0,0.65);
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:
+      radial-gradient(800px 400px at 10% 10%, rgba(124,58,237,0.06), transparent 8%),
+      radial-gradient(700px 350px at 90% 85%, rgba(6,182,212,0.04), transparent 8%),
+      var(--bg);
+    color:#e6eef8;padding:18px;-webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+  header{display:flex;align-items:center;gap:12px}
+  .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent1),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800}
+  h1{margin:0;font-size:18px}
+  p.lead{margin:0;color:var(--muted);font-size:13px}
+
+  .grid{display:grid;grid-template-columns:1fr;gap:14px}
+  @media(min-width:980px){ .grid{grid-template-columns:1fr minmax(340px,34%)} }
+
+  .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:14px;border-radius:var(--card-radius);border:1px solid rgba(255,255,255,0.03)}
+  label{display:block;margin-top:8px;color:var(--muted);font-size:13px}
+  input[type=text], input[type=number]{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+
+  .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .btn{padding:8px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
+  .btn-primary{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:white}
+  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+  .btn-danger{background:linear-gradient(90deg,#ff5a6a,#ff8b5b);color:white}
+
+  .msgs{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow:auto;margin-top:10px;padding-right:6px}
+  .msg{padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;background:rgba(255,255,255,0.01)}
+  .msg.new{box-shadow:0 10px 30px rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.18)}
+  .subject{font-weight:700}
+  .from{font-size:13px;color:var(--muted)}
+
+  .viewer{min-height:180px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg,rgba(0,0,0,0.06),rgba(0,0,0,0.03));margin-top:10px;overflow:auto}
+  .muted{color:var(--muted);font-size:13px}
+  .space{flex:1}
+
+  .hide-ui{display:none !important; visibility:hidden !important; height:0 !important; margin:0 !important; padding:0 !important; overflow:hidden !important}
+  #addrDisplay{color:var(--accent-addr); font-weight:800; background:linear-gradient(90deg, rgba(0,212,255,0.08), rgba(6,182,212,0.04)); padding:4px 8px;border-radius:8px}
+
+  footer{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+
+  /* toast */
+  #toast{
+    position:fixed;
+    left:50%;
+    transform:translateX(-50%);
+    bottom:26px;
+    background:var(--toast-bg);
+    color:#fff;
+    padding:10px 14px;
+    border-radius:10px;
+    box-shadow:0 8px 30px rgba(0,0,0,0.6);
+    z-index:99999;
+    max-width:90%;
+    font-weight:600;
+    display:none;
+    opacity:0;
+    transition:opacity .22s ease, transform .22s ease;
+  }
+  #toast.show{ display:block; opacity:1; transform:translateX(-50%) translateY(0); }
+  #toast.hide{ opacity:0; transform:translateX(-50%) translateY(8px); }
+
+  /* small helper for tiny status inline */
+  .small-muted{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">EBS</div>
+    <div>
+      <h1>EBS TEMP-MAIL</h1>
+      <p class="lead">Fast · Safe · Temporary</p>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- LEFT -->
+    <div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>Account & Controls</strong></div>
+          <div class="muted">Safe mode</div>
+        </div>
+
+        <!-- Hidden API UI (kept in DOM but visually hidden) -->
+        <input id="apiInput" class="hide-ui" type="text" placeholder="API base (leave blank)">
+        <button id="pingBtn" class="hide-ui btn-ghost">Ping</button>
+
+        <label>Local part</label>
+        <input id="localInput" type="text" placeholder="e.g. myname (optional)">
+
+        <label>Customize password</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="pwdInput" type="text" placeholder="type custom password here">
+          <label style="color:var(--muted)"><input id="customPassToggle" type="checkbox" checked> Use</label>
+        </div>
+
+        <div class="controls">
+          <button id="createBtn" class="btn btn-primary">Create & Login</button>
+          <button id="createRandBtn" class="btn btn-ghost">Random local</button>
+          <button id="copyAddrBtn" class="btn btn-ghost" disabled>Copy Address</button>
+          <button id="copyTokenBtn" class="hide-ui btn-ghost" disabled>Copy Token</button>
+          <button id="clearBtn" class="btn btn-ghost">Clear</button>
+          <button id="delAccountBtn" class="btn btn-danger">Delete</button>
+        </div>
+
+        <div style="margin-top:12px" class="muted">Address: <span id="addrDisplay">—</span> · Token: <span id="tokenDisplay" class="hide-ui">—</span></div>
+
+        <hr style="border-color:rgba(255,255,255,0.03);margin:12px 0">
+
+        <div style="display:flex;gap:8px;align-items:center">
+          <div class="muted">Auto-refresh (ms):</div>
+          <input id="intervalInput" type="number" min="500" step="100" value="2000" style="width:120px">
+          <div class="space"></div>
+          <button id="togglePollBtn" class="btn btn-primary">Stop Auto</button>
+          <button id="manualRefreshBtn" class="btn btn-ghost">Refresh Now</button>
+        </div>
+
+        <div style="margin-top:10px" class="muted">Options: <label style="display:inline-block;margin-left:6px"><input id="soundToggle" type="checkbox" checked/> Play sound</label></div>
+        <div style="margin-top:8px"><button id="enableNotifBtn" class="btn btn-ghost">Enable notifications & sound</button></div>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>Messages</strong></div>
+          <div class="muted">Click to view</div>
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+          <input id="filterInput" placeholder="search subject/from" style="flex:1;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit">
+          <button id="extractAllOtp" class="btn btn-ghost">Extract OTPs</button>
+        </div>
+
+        <div id="msgsContainer" class="msgs" style="margin-top:10px">No messages yet</div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div>
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong>Viewer</strong></div>
+          <div class="muted">Selected message</div>
+        </div>
+
+        <div id="viewerMeta" class="muted" style="margin-top:8px">No message selected</div>
+        <div id="viewerBody" class="viewer" style="margin-top:10px">Message body will appear here.</div>
+
+        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
+          <button id="openInNew" class="btn btn-primary">Open in New Tab</button>
+          <button id="markReadBtn" class="btn btn-ghost">Mark Read</button>
+          <div class="space"></div>
+          <div class="muted">OTP: <span id="otpDisplay">—</span> <button id="copyOtpBtn" class="btn btn-ghost">Copy OTP</button></div>
+        </div>
+
+        <!-- Debug hidden -->
+        <pre id="debugArea" class="hide-ui" style="height:120px;overflow:auto;border-radius:10px;padding:8px;background:rgba(255,255,255,0.02);">Ready</pre>
+      </div>
+
+      <div class="card" style="margin-top:12px">
+        <div><strong>JOIN OUR TELEGRAM CHANNEL</strong></div>
+        <ul class="muted" style="margin-top:8px">
+          <li><a href="https://t.me/vpnsellandgiveway" target="_blank" style="display:inline-block;padding:10px 16px;background:linear-gradient(90deg,#0088cc,#00d4ff);color:#fff;border-radius:10px;font-weight:700;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);">🔥 Join Our Telegram Channel</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <footer>COPYRIGHT EARNING BY SOHAN.2025.</footer>
+</div>
+
+<!-- tiny ding -->
+<audio id="ding" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YRAAAAD//w==" preload="auto"></audio>
+
+<!-- toast element -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* Final JS: no blocking popups, silent toasts, delete fixed, auto-clear on create */
+(function(){
+  // small helper: toast
+  const toastEl = document.getElementById('toast');
+  let toastTimer = null;
+  function showToast(msg, ms=2800){
+    if(!toastEl) return;
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    toastEl.classList.remove('hide');
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=>{ toastEl.classList.add('hide'); toastTimer = setTimeout(()=>{ toastEl.classList.remove('show'); toastEl.style.display='none'; },220); }, ms);
+    toastEl.style.display='block';
+  }
+
+  function qparam(k){ try{ return new URL(location.href).searchParams.get(k) }catch(e){return null} }
+  const defaultApi = 'https://api.mail.tm';
+
+  // DOM refs
+  const apiInput = document.getElementById('apiInput');
+  const addrDisplay = document.getElementById('addrDisplay');
+  const tokenDisplay = document.getElementById('tokenDisplay');
+  const copyAddrBtn = document.getElementById('copyAddrBtn');
+  const msgsContainer = document.getElementById('msgsContainer');
+  const viewerMeta = document.getElementById('viewerMeta');
+  const viewerBody = document.getElementById('viewerBody');
+  const debugArea = document.getElementById('debugArea');
+  const intervalInput = document.getElementById('intervalInput');
+  const togglePollBtn = document.getElementById('togglePollBtn');
+  const manualRefreshBtn = document.getElementById('manualRefreshBtn');
+  const createBtn = document.getElementById('createBtn');
+  const createRandBtn = document.getElementById('createRandBtn');
+  const clearBtn = document.getElementById('clearBtn');
+  const delAccountBtn = document.getElementById('delAccountBtn');
+  const openInNew = document.getElementById('openInNew');
+  const markReadBtn = document.getElementById('markReadBtn');
+  const filterInput = document.getElementById('filterInput');
+  const soundToggle = document.getElementById('soundToggle');
+  const ding = document.getElementById('ding');
+  const extractAllOtp = document.getElementById('extractAllOtp');
+  const otpDisplay = document.getElementById('otpDisplay');
+  const copyOtpBtn = document.getElementById('copyOtpBtn');
+  const enableNotifBtn = document.getElementById('enableNotifBtn');
+  const customPassToggle = document.getElementById('customPassToggle');
+
+  const maybeWindow = (typeof window !== 'undefined' && window.__MAILTM_API_BASE) || qparam('api') || '';
+  apiInput.value = maybeWindow;
+
+  let state = { token:null, addr:null, pwd:null, messages:[], polling:false, pollHandle:null, lastCount:0, selected:null };
+  const notifiedOtps = new Set();
+  let soundUnlocked = false;
+
+  // api fetch wrapper
+  async function apiFetch(path, opts={}){
+    const base = (apiInput.value && apiInput.value.trim()) || defaultApi;
+    const url = base.replace(/\/$/,'') + path;
+    const mergedHeaders = Object.assign({}, opts.headers || {});
+    if(state.token && !mergedHeaders.Authorization) mergedHeaders.Authorization = 'Bearer ' + state.token;
+    const merged = Object.assign({}, opts, { headers: mergedHeaders });
+    const res = await fetch(url, merged);
+    const text = await res.text();
+    try { return { ok: res.ok, status: res.status, json: JSON.parse(text), text }; }
+    catch(e){ return { ok: res.ok, status: res.status, json: null, text }; }
+  }
+
+  // unlock sound/notification on user gesture
+  async function unlockPermissions(){
+    if(soundUnlocked) return;
+    soundUnlocked = true;
+    try{ await ding.play().catch(()=>{}); }catch(e){}
+    if("Notification" in window && Notification.permission !== "granted"){
+      try{ await Notification.requestPermission(); }catch(e){}
+    }
+  }
+  document.addEventListener('click', ()=>unlockPermissions(), { once: true });
+  enableNotifBtn.addEventListener('click', async ()=>{ await unlockPermissions(); enableNotifBtn.style.display='none'; showToast('Notifications enabled (if browser permits)'); });
+
+  // small utils
+  function rnd(n=6){ const s='abcdefghijklmnopqrstuvwxyz0123456789'; let o=''; for(let i=0;i<n;i++) o+=s[Math.floor(Math.random()*s.length)]; return o; }
+  function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
+  function apiBase(){ return (apiInput.value && apiInput.value.trim()) || defaultApi; }
+
+  // clear messages helper (used when creating new account)
+  function clearAllMessagesUI(){
+    state.messages = [];
+    state.lastCount = 0;
+    state.selected = null;
+    msgsContainer.innerHTML = '<div class="muted">No messages</div>';
+    viewerBody.innerHTML = '';
+    viewerMeta.textContent = 'No message selected';
+    otpDisplay.textContent = '—';
+    notifiedOtps.clear();
+  }
+
+  // Create account
+  createBtn.addEventListener('click', ()=>createAccount(false));
+  createRandBtn.addEventListener('click', ()=>createAccount(true));
+
+  async function createAccount(useRandom=false){
+    // clear previous messages immediately
+    clearAllMessagesUI();
+
+    try{
+      const local = useRandom ? ('user' + rnd(6)) : (document.getElementById('localInput').value.trim() || ('user' + rnd(6)));
+      const pwdField = document.getElementById('pwdInput').value.trim();
+      const pwd = (customPassToggle.checked && pwdField) ? pwdField : ('pw' + rnd(10));
+
+      // fetch domains
+      const d = await apiFetch('/domains');
+      if(!d.ok){ showToast('Domain fetch failed'); return; }
+      const dom = (d.json && d.json['hydra:member'] && d.json['hydra:member'][0] && d.json['hydra:member'][0].domain) || 'mail.tm';
+      const addr = `${local}@${dom}`;
+
+      // create account
+      await apiFetch('/accounts', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ address: addr, password: pwd }) });
+
+      // login (get token)
+      const tk = await apiFetch('/token', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ address: addr, password: pwd }) });
+      if(!tk.ok || !tk.json){ showToast('Login failed'); return; }
+      const token = tk.json.token || tk.json.access_token || tk.json.accessToken;
+      if(!token){ showToast('No token received'); return; }
+
+      state.token = token;
+      state.addr = addr;
+      state.pwd = pwd;
+      addrDisplay.textContent = addr;
+      tokenDisplay.textContent = token.slice(0,8) + '...';
+      copyAddrBtn.disabled = false;
+      showToast('Account created & logged in');
+
+      // load messages for new account
+      await loadMessages();
+    }catch(e){ console.error(e); showToast('Create error'); }
+  }
+
+  // copy address silently
+  copyAddrBtn.addEventListener('click', async ()=>{
+    if(!state.addr){ showToast('No address to copy'); return; }
+    try{
+      await navigator.clipboard.writeText(state.addr);
+      showToast('Address copied to clipboard');
+    }catch(e){
+      // fallback: show in toast (no prompt)
+      showToast('Copy failed — address: ' + state.addr);
+    }
+  });
+
+  // load messages
+  manualRefreshBtn.addEventListener('click', loadMessages);
+
+  async function loadMessages(){
+    try{
+      if(!state.token){ logDebug('No token'); return; }
+      const r = await apiFetch('/messages');
+      if(!r.ok){ logDebug('messages fetch failed: ' + r.status); return; }
+      const list = (r.json && (r.json['hydra:member'] || r.json['hydra:items'] || [])) || [];
+      const q = (filterInput.value||'').trim().toLowerCase();
+      const filtered = q ? list.filter(m => (m.subject||'').toLowerCase().includes(q) || (m.from && (m.from.address||'').toLowerCase().includes(q))) : list;
+
+      const prevIds = new Set((state.messages||[]).map(x=>x.id));
+      state.messages = filtered;
+      renderMessages(prevIds);
+
+      // notify new OTPs
+      for(const m of filtered){
+        if(prevIds.has(m.id)) continue;
+        const combined = (m.intro || '') + ' ' + (m.text || '') + ' ' + (m.html || '');
+        const o = extractOtp(combined);
+        if(o) notifyOtp(o, m.subject || '');
+      }
+
+      if(filtered.length > state.lastCount && soundToggle.checked){ try{ ding.currentTime = 0; ding.play().catch(()=>{}); }catch(e){} }
+      state.lastCount = filtered.length;
+      logDebug({status:r.status, count:filtered.length});
+    }catch(e){ console.error(e); logDebug('Load messages error: ' + e); }
+  }
+
+  function renderMessages(prevIds){
+    msgsContainer.innerHTML = '';
+    if(!state.messages || state.messages.length===0){ msgsContainer.innerHTML = '<div class="muted">No messages</div>'; return; }
+    state.messages.forEach(m => {
+      const el = document.createElement('div'); el.className='msg';
+      if(prevIds && !prevIds.has(m.id)) el.classList.add('new');
+      const from = (m.from && (m.from.address||m.from.name)) || 'unknown';
+      el.innerHTML = `<div><div class="subject">${escapeHtml(m.subject||'(no subject)')}</div><div class="from">${escapeHtml(from)}</div></div><div class="time">${new Date(m.createdAt||Date.now()).toLocaleTimeString()}</div>`;
+      el.addEventListener('click', ()=> selectMessage(m));
+      msgsContainer.appendChild(el);
+    });
+  }
+
+  // select message
+  async function selectMessage(m){
+    try{
+      const r = await apiFetch('/messages/' + m.id);
+      if(!r.ok){ logDebug('message fetch failed: ' + r.status); showToast('Failed to fetch message'); return; }
+      const msg = r.json || null;
+      state.selected = msg;
+      viewerMeta.textContent = `${msg.subject || '(no subject)'} — From: ${msg.from && (msg.from.address||msg.from.name) || 'unknown'}`;
+      viewerBody.innerHTML = msg.html || ('<pre style="white-space:pre-wrap;">' + escapeHtml(msg.text || '(no body)') + '</pre>');
+      const otp = extractOtp(msg.html || msg.text || '');
+      otpDisplay.textContent = otp || '—';
+      if(otp) notifyOtp(otp, msg.subject || '');
+    }catch(e){ console.error(e); showToast('Select message error'); }
+  }
+
+  // extract OTP helper (4-8 digits)
+  function extractOtp(text){ if(!text) return null; const m = String(text).match(/(?:\b|[^0-9])(\d{4,8})(?:\b|[^0-9])/); return m ? m[1] : null; }
+
+  // notify otp
+  function notifyOtp(otp, subject){
+    if(!otp) return;
+    if(notifiedOtps.has(otp)) return;
+    notifiedOtps.add(otp);
+
+    if(soundToggle && soundToggle.checked){
+      try{ ding.currentTime = 0; ding.play().catch(()=>{}); }catch(e){}
+    }
+    if("Notification" in window && Notification.permission === 'granted'){
+      try{ const n = new Notification('OTP received', { body: (subject? subject + ' — ' : '') + otp, tag: 'mailtm-otp-' + otp }); n.onclick = ()=> window.focus(); }catch(e){}
+    }
+    // also show small toast
+    showToast('OTP received: ' + otp, 3000);
+  }
+
+  // Extract All OTPs (auto-copy first OTP silently, no prompt)
+  extractAllOtp.addEventListener('click', async ()=>{
+    try{
+      const found = [];
+      (state.messages || []).forEach(m => {
+        const combined = (m.intro || '') + ' ' + (m.text || '') + ' ' + (m.html || '');
+        const o = extractOtp(combined);
+        if(o) found.push({ otp: o, subject: m.subject || '' });
+      });
+      if(found.length === 0){ showToast('No OTPs found'); return; }
+      const firstOtp = found[0].otp;
+      // copy silently
+      try{
+        await navigator.clipboard.writeText(firstOtp);
+        otpDisplay.textContent = firstOtp;
+        showToast('OTP copied: ' + firstOtp);
+      }catch(e){
+        // can't copy: just set viewer and show toast
+        otpDisplay.textContent = firstOtp;
+        showToast('OTP (copy failed) — ' + firstOtp);
+      }
+      // if there are more, show small toast with count (not popup)
+      if(found.length > 1) showToast((found.length) + ' OTP(s) found; first copied', 3200);
+    }catch(err){ console.error(err); showToast('Error extracting OTPs'); }
+  });
+
+  // copy OTP button (silent)
+  copyOtpBtn.addEventListener('click', async ()=>{
+    const t = otpDisplay.textContent;
+    if(!t || t === '—'){ showToast('No OTP to copy'); return; }
+    try{ await navigator.clipboard.writeText(t); showToast('OTP copied'); } catch(e){ showToast('Copy failed — OTP: ' + t); }
+  });
+
+  // open in new tab
+  openInNew.addEventListener('click', ()=>{ if(!state.selected) { showToast('Select a message first'); return; } const w = window.open(); w.document.write(state.selected.html || escapeHtml(state.selected.text || '')); });
+
+  markReadBtn.addEventListener('click', ()=>{ showToast('Marked read (local)'); });
+
+  // clear UI
+  clearBtn.addEventListener('click', ()=>{ clearAllMessagesUI(); showToast('Cleared messages'); });
+
+  // delete account: improved logic using apiFetch for DELETE so Authorization header included
+  delAccountBtn.addEventListener('click', async ()=>{
+    if(!state.addr || !state.token){ showToast('No account to delete'); return; }
+    // best-effort delete; no blocking prompt (we avoid alert)
+    try{
+      // fetch accounts and find matching
+      const r = await apiFetch('/accounts');
+      if(!r.ok){ showToast('Failed to fetch accounts'); return; }
+      const items = r.json && (r.json['hydra:member'] || []);
+      const acct = (items || []).find(a => a.address === state.addr);
+      if(!acct){ showToast('Account not found on server'); return; }
+      const del = await apiFetch('/accounts/' + acct.id, { method: 'DELETE' });
+      if(del.ok){ showToast('Account deleted'); clearAllMessagesUI(); state.token = null; state.addr = null; addrDisplay.textContent = '—'; tokenDisplay.textContent = '—'; copyAddrBtn.disabled = true; }
+      else { showToast('Delete failed: ' + del.status); }
+    }catch(e){ console.error(e); showToast('Delete error'); }
+  });
+
+  // polling control
+  togglePollBtn.addEventListener('click', ()=>{ if(state.polling) stopPolling(); else startPolling(); });
+  function startPolling(){ if(state.pollHandle) clearInterval(state.pollHandle); const ms = Math.max(500, parseInt(intervalInput.value)||2000); state.pollHandle = setInterval(()=> loadMessages().catch(()=>{}), ms); togglePollBtn.textContent = 'Stop Auto'; state.polling = true; }
+  function stopPolling(){ if(state.pollHandle) clearInterval(state.pollHandle); state.pollHandle = null; togglePollBtn.textContent = 'Start Auto'; state.polling = false; }
+  startPolling();
+
+  document.addEventListener('visibilitychange', ()=>{ if(document.hidden && state.pollHandle){ clearInterval(state.pollHandle); } else if(state.polling){ const ms = Math.max(500, parseInt(intervalInput.value)||2000); state.pollHandle = setInterval(()=> loadMessages().catch(()=>{}), ms); } });
+
+  // small debug logger
+  function logDebug(o){ try{ debugArea.textContent = (typeof o === 'string') ? o : JSON.stringify(o, null, 2); } catch(e){} }
+
+  // initial silent ping (no UI)
+  (async ()=>{ try{ await apiFetch('/domains'); }catch(e){} })();
+
+})(); // IIFE end
+</script>
+</body>
+</html>
