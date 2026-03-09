@@ -1,219 +1,262 @@
 <!doctype html>
-<html lang="bn">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>EBS-TEMPMAIL</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<title>EBS | Pro Temp Mail</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#05060a; --muted:#9aa7bd; --accent1:#7c3aed; --accent2:#06b6d4;
-    --accent-addr:#00d4ff; --card-radius:14px;
-    --toast-bg: rgba(0,0,0,0.65);
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface-hover: #334155;
+    --border: rgba(255, 255, 255, 0.08);
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --success: #10b981;
+    --danger: #ef4444;
+    --radius: 16px;
   }
-  *{box-sizing:border-box}
-  body{
-    margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;
-    background:
-      radial-gradient(800px 400px at 10% 10%, rgba(124,58,237,0.06), transparent 8%),
-      radial-gradient(700px 350px at 90% 85%, rgba(6,182,212,0.04), transparent 8%),
-      var(--bg);
-    color:#e6eef8;padding:18px;-webkit-font-smoothing:antialiased;
+
+  * { box-sizing: border-box; transition: background-color 0.2s, border-color 0.2s; }
+  
+  body {
+    margin: 0; font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: var(--bg); color: var(--text-main);
+    min-height: 100vh; display: flex; flex-direction: column;
+    background-image: radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+                      radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.05), transparent 25%);
   }
-  .wrap{max-width:1200px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-  header{display:flex;align-items:center;gap:12px}
-  .logo{width:56px;height:56px;border-radius:12px;background:linear-gradient(135deg,var(--accent1),var(--accent2));display:flex;align-items:center;justify-content:center;font-weight:800}
-  h1{margin:0;font-size:18px}
-  p.lead{margin:0;color:var(--muted);font-size:13px}
 
-  .grid{display:grid;grid-template-columns:1fr;gap:14px}
-  @media(min-width:980px){ .grid{grid-template-columns:1fr minmax(340px,34%)} }
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 10px; }
 
-  .card{background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));padding:14px;border-radius:var(--card-radius);border:1px solid rgba(255,255,255,0.03)}
-  label{display:block;margin-top:8px;color:var(--muted);font-size:13px}
-  input[type=text], input[type=number]{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+  .wrap { max-width: 1400px; margin: 0 auto; width: 100%; padding: 24px; display: flex; flex-direction: column; flex: 1; gap: 24px; }
 
-  .controls{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
-  .btn{padding:8px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
-  .btn-primary{background:linear-gradient(90deg,var(--accent1),var(--accent2));color:white}
-  .btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
-  .btn-danger{background:linear-gradient(90deg,#ff5a6a,#ff8b5b);color:white}
+  /* Header */
+  header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .logo-area { display: flex; align-items: center; gap: 16px; }
+  .logo-icon { width: 48px; height: 48px; background: linear-gradient(135deg, var(--primary), #06b6d4); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3); }
+  .logo-text h1 { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .logo-text p { margin: 0; color: var(--text-muted); font-size: 13px; font-weight: 500; }
+  .status-badge { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--success); background: rgba(16, 185, 129, 0.1); padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2); }
+  .status-badge::before { content: ''; width: 8px; height: 8px; background: var(--success); border-radius: 50%; box-shadow: 0 0 10px var(--success); }
 
-  .msgs{display:flex;flex-direction:column;gap:8px;max-height:520px;overflow:auto;margin-top:10px;padding-right:6px}
-  .msg{padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);display:flex;justify-content:space-between;align-items:flex-start;cursor:pointer;background:rgba(255,255,255,0.01)}
-  .msg.new{box-shadow:0 10px 30px rgba(124,58,237,0.12);border:1px solid rgba(124,58,237,0.18)}
-  .subject{font-weight:700}
-  .from{font-size:13px;color:var(--muted)}
+  /* Main Layout */
+  .grid { display: grid; grid-template-columns: 380px 1fr; gap: 24px; flex: 1; min-height: 0; }
+  @media(max-width: 980px) { .grid { grid-template-columns: 1fr; } }
 
-  .viewer{min-height:180px;padding:12px;border-radius:10px;border:1px solid rgba(255,255,255,0.02);background:linear-gradient(180deg,rgba(0,0,0,0.06),rgba(0,0,0,0.03));margin-top:10px;overflow:auto}
-  .muted{color:var(--muted);font-size:13px}
-  .space{flex:1}
+  /* Cards */
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+  .card-header { font-size: 14px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
 
-  .hide-ui{display:none !important; visibility:hidden !important; height:0 !important; margin:0 !important; padding:0 !important; overflow:hidden !important}
-  #addrDisplay{color:var(--accent-addr); font-weight:800; background:linear-gradient(90deg, rgba(0,212,255,0.08), rgba(6,182,212,0.04)); padding:4px 8px;border-radius:8px}
+  /* Primary Address Box */
+  .address-box { background: rgba(0,0,0,0.2); border: 1px dashed var(--primary); padding: 20px; border-radius: 12px; text-align: center; margin-bottom: 20px; position: relative; }
+  #addrDisplay { display: block; font-size: 18px; font-weight: 700; color: #fff; margin-bottom: 12px; word-break: break-all; font-family: monospace; }
 
-  footer{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+  /* Forms & Buttons */
+  label { display: block; margin-bottom: 6px; color: var(--text-muted); font-size: 13px; font-weight: 500; }
+  input[type=text], input[type=number] { width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--border); padding: 12px 16px; border-radius: 10px; color: white; font-family: inherit; font-size: 14px; outline: none; margin-bottom: 16px; }
+  input[type=text]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15); }
 
-  /* toast */
-  #toast{
-    position:fixed;
-    left:50%;
-    transform:translateX(-50%);
-    bottom:26px;
-    background:var(--toast-bg);
-    color:#fff;
-    padding:10px 14px;
-    border-radius:10px;
-    box-shadow:0 8px 30px rgba(0,0,0,0.6);
-    z-index:99999;
-    max-width:90%;
-    font-weight:600;
-    display:none;
-    opacity:0;
-    transition:opacity .22s ease, transform .22s ease;
-  }
-  #toast.show{ display:block; opacity:1; transform:translateX(-50%) translateY(0); }
-  #toast.hide{ opacity:0; transform:translateX(-50%) translateY(8px); }
+  .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+  .btn { padding: 12px; border-radius: 10px; border: none; font-weight: 600; font-family: inherit; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+  .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+  .btn-secondary { background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid var(--border); }
+  .btn-secondary:hover { background: var(--surface-hover); }
+  .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+  .btn-danger:hover { background: var(--danger); color: white; }
 
-  /* small helper for tiny status inline */
-  .small-muted{font-size:12px;color:var(--muted)}
+  /* Sidebar Setup */
+  .sidebar { display: flex; flex-direction: column; gap: 20px; height: calc(100vh - 120px); overflow-y: auto; padding-right: 8px; }
+  
+  /* Message List */
+  .msgs { flex: 1; display: flex; flex-direction: column; gap: 8px; overflow-y: auto; margin-top: 8px; }
+  .msg { padding: 16px; border-radius: 12px; background: rgba(0,0,0,0.15); border: 1px solid transparent; cursor: pointer; }
+  .msg:hover { background: rgba(255,255,255,0.03); border-color: var(--border); }
+  .msg.new { border-left: 3px solid var(--primary); background: linear-gradient(90deg, rgba(99,102,241,0.1) 0%, transparent 100%); }
+  .msg .subject { font-weight: 600; font-size: 15px; margin-bottom: 6px; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .msg .from { font-size: 13px; color: var(--text-muted); display: flex; justify-content: space-between; }
+
+  /* Viewer Area */
+  .viewer-card { display: flex; flex-direction: column; height: calc(100vh - 120px); }
+  .viewer-meta { padding: 20px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,0.1); border-radius: var(--radius) var(--radius) 0 0; }
+  .viewer-subject { font-size: 22px; font-weight: 700; margin: 0 0 8px 0; }
+  .viewer-from { color: var(--text-muted); font-size: 14px; }
+  
+  /* Mail Body - White background for accurate HTML rendering */
+  .viewer-body { flex: 1; background: #ffffff; color: #1e293b; padding: 32px; overflow-y: auto; border-radius: 0 0 var(--radius) var(--radius); font-size: 15px; line-height: 1.6; }
+  
+  /* Empty State */
+  .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; color: var(--text-muted); text-align: center; }
+  .empty-state svg { width: 64px; height: 64px; opacity: 0.2; margin-bottom: 16px; }
+
+  /* OTP Banner */
+  .otp-banner { display: flex; align-items: center; justify-content: space-between; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); padding: 12px 20px; border-radius: 10px; margin-top: 16px; }
+  .otp-code { font-size: 20px; font-weight: 800; color: var(--success); letter-spacing: 2px; }
+
+  /* Utility */
+  .hide-ui { display: none !important; }
+  .flex-row { display: flex; gap: 8px; align-items: center; }
+  .space { flex: 1; }
+  hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
+  footer { text-align: center; color: var(--text-muted); font-size: 13px; margin-top: auto; padding-top: 20px; }
+
+  /* Toast */
+  #toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(20px); background: #f8fafc; color: #0f172a; padding: 12px 24px; border-radius: 30px; font-weight: 600; box-shadow: 0 10px 40px rgba(0,0,0,0.5); z-index: 99999; opacity: 0; pointer-events: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <div class="logo">EBS</div>
-    <div>
-      <h1>EBS TEMP-MAIL</h1>
-      <p class="lead">Fast · Safe · Temporary</p>
+    <div class="logo-area">
+      <div class="logo-icon">EBS</div>
+      <div class="logo-text">
+        <h1>EBS Pro Mail</h1>
+        <p>Secure · Anonymous · Temporary</p>
+      </div>
     </div>
+    <div class="status-badge">System Active</div>
   </header>
 
   <div class="grid">
-    <!-- LEFT -->
-    <div>
+    <div class="sidebar">
       <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong>Account & Controls</strong></div>
-          <div class="muted">Safe mode</div>
+        <div class="card-header"><span>Your Inbox</span></div>
+        
+        <div class="address-box">
+          <span id="addrDisplay">Click Create to generate</span>
+          <button id="copyAddrBtn" class="btn btn-secondary" style="width:100%; margin-top:12px;" disabled>Copy Email Address</button>
         </div>
 
-        <!-- Hidden API UI (kept in DOM but visually hidden) -->
-        <input id="apiInput" class="hide-ui" type="text" placeholder="API base (leave blank)">
-        <button id="pingBtn" class="hide-ui btn-ghost">Ping</button>
+        <div class="flex-row">
+          <div style="flex:1">
+            <label>Custom Username (Optional)</label>
+            <input id="localInput" type="text" placeholder="e.g. jondoe" style="margin-bottom:0">
+          </div>
+          <div style="flex:1">
+            <label>Password</label>
+            <input id="pwdInput" type="text" placeholder="Auto-generated" style="margin-bottom:0">
+          </div>
+        </div>
+        
+        <label style="margin-top:12px; display:flex; gap:8px; align-items:center; cursor:pointer;">
+          <input id="customPassToggle" type="checkbox" checked> Use Custom Password
+        </label>
 
-        <label>Local part</label>
-        <input id="localInput" type="text" placeholder="e.g. myname (optional)">
+        <hr>
 
-        <label>Customize password</label>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input id="pwdInput" type="text" placeholder="type custom password here">
-          <label style="color:var(--muted)"><input id="customPassToggle" type="checkbox" checked> Use</label>
+        <div class="btn-grid">
+          <button id="createBtn" class="btn btn-primary" style="grid-column: span 2;">Create Custom Address</button>
+          <button id="createRandBtn" class="btn btn-secondary">Random Address</button>
+          <button id="delAccountBtn" class="btn btn-danger">Delete Account</button>
         </div>
 
-        <div class="controls">
-          <button id="createBtn" class="btn btn-primary">Create & Login</button>
-          <button id="createRandBtn" class="btn btn-ghost">Random local</button>
-          <button id="copyAddrBtn" class="btn btn-ghost" disabled>Copy Address</button>
-          <button id="copyTokenBtn" class="hide-ui btn-ghost" disabled>Copy Token</button>
-          <button id="clearBtn" class="btn btn-ghost">Clear</button>
-          <button id="delAccountBtn" class="btn btn-danger">Delete</button>
-        </div>
-
-        <div style="margin-top:12px" class="muted">Address: <span id="addrDisplay">—</span> · Token: <span id="tokenDisplay" class="hide-ui">—</span></div>
-
-        <hr style="border-color:rgba(255,255,255,0.03);margin:12px 0">
-
-        <div style="display:flex;gap:8px;align-items:center">
-          <div class="muted">Auto-refresh (ms):</div>
-          <input id="intervalInput" type="number" min="500" step="100" value="2000" style="width:120px">
-          <div class="space"></div>
-          <button id="togglePollBtn" class="btn btn-primary">Stop Auto</button>
-          <button id="manualRefreshBtn" class="btn btn-ghost">Refresh Now</button>
-        </div>
-
-        <div style="margin-top:10px" class="muted">Options: <label style="display:inline-block;margin-left:6px"><input id="soundToggle" type="checkbox" checked/> Play sound</label></div>
-        <div style="margin-top:8px"><button id="enableNotifBtn" class="btn btn-ghost">Enable notifications & sound</button></div>
+        <input id="apiInput" class="hide-ui" type="text">
+        <button id="pingBtn" class="hide-ui btn-secondary">Ping</button>
+        <span id="tokenDisplay" class="hide-ui"></span>
+        <button id="copyTokenBtn" class="hide-ui btn-secondary">Copy Token</button>
+        <input id="intervalInput" class="hide-ui" type="number" value="2000">
+        <input id="soundToggle" type="checkbox" class="hide-ui" checked>
       </div>
 
-      <div class="card" style="margin-top:12px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong>Messages</strong></div>
-          <div class="muted">Click to view</div>
+      <div class="card" style="flex: 1; display:flex; flex-direction:column; min-height: 350px;">
+        <div class="card-header">
+          <span>Messages</span>
+          <div class="flex-row">
+            <button id="manualRefreshBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Refresh</button>
+            <button id="togglePollBtn" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px;">Auto: ON</button>
+          </div>
         </div>
 
-        <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
-          <input id="filterInput" placeholder="search subject/from" style="flex:1;padding:8px;border-radius:10px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit">
-          <button id="extractAllOtp" class="btn btn-ghost">Extract OTPs</button>
+        <input id="filterInput" type="text" placeholder="Search sender or subject...">
+        
+        <div id="msgsContainer" class="msgs">
+          <div class="empty-state" style="font-size: 14px;">
+            <p>No messages yet.</p>
+          </div>
         </div>
-
-        <div id="msgsContainer" class="msgs" style="margin-top:10px">No messages yet</div>
+        
+        <div style="margin-top: 16px; display:flex; justify-content:space-between; align-items:center;">
+            <button id="clearBtn" class="btn btn-secondary" style="font-size: 12px; padding: 6px 10px;">Clear List</button>
+            <button id="enableNotifBtn" class="btn btn-secondary" style="font-size: 12px; padding: 6px 10px;">Enable Sound</button>
+        </div>
       </div>
+      
+      <a href="https://t.me/vpnsellandgiveway" target="_blank" style="display:block; padding:16px; background:linear-gradient(90deg,#0088cc,#00d4ff); color:#fff; border-radius:12px; font-weight:700; text-align:center; text-decoration:none; box-shadow:0 4px 12px rgba(0,136,204,0.3);">
+        🔥 Join Our Telegram Channel
+      </a>
     </div>
 
-    <!-- RIGHT -->
-    <div>
-      <div class="card">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong>Viewer</strong></div>
-          <div class="muted">Selected message</div>
-        </div>
-
-        <div id="viewerMeta" class="muted" style="margin-top:8px">No message selected</div>
-        <div id="viewerBody" class="viewer" style="margin-top:10px">Message body will appear here.</div>
-
-        <div style="display:flex;gap:8px;margin-top:12px;align-items:center">
-          <button id="openInNew" class="btn btn-primary">Open in New Tab</button>
-          <button id="markReadBtn" class="btn btn-ghost">Mark Read</button>
-          <div class="space"></div>
-          <div class="muted">OTP: <span id="otpDisplay">—</span> <button id="copyOtpBtn" class="btn btn-ghost">Copy OTP</button></div>
-        </div>
-
-        <!-- Debug hidden -->
-        <pre id="debugArea" class="hide-ui" style="height:120px;overflow:auto;border-radius:10px;padding:8px;background:rgba(255,255,255,0.02);">Ready</pre>
+    <div class="card viewer-card" style="padding:0; overflow:hidden;">
+        
+      <div id="viewerEmpty" class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+          <polyline points="22,6 12,13 2,6"></polyline>
+        </svg>
+        <h3>Select a message to read</h3>
+        <p style="font-size: 14px; max-width: 250px; line-height: 1.5;">Your temporary inbox is actively waiting for incoming emails.</p>
       </div>
 
-      <div class="card" style="margin-top:12px">
-        <div><strong>JOIN OUR TELEGRAM CHANNEL</strong></div>
-        <ul class="muted" style="margin-top:8px">
-          <li><a href="https://t.me/vpnsellandgiveway" target="_blank" style="display:inline-block;padding:10px 16px;background:linear-gradient(90deg,#0088cc,#00d4ff);color:#fff;border-radius:10px;font-weight:700;text-decoration:none;box-shadow:0 4px 12px rgba(0,0,0,0.3);">🔥 Join Our Telegram Channel</a></li>
-        </ul>
+      <div id="viewerContent" class="hide-ui" style="display: flex; flex-direction: column; height: 100%;">
+          <div class="viewer-meta">
+            <div id="viewerMeta" class="hide-ui">Original Meta</div>
+            <h2 id="customSubject" class="viewer-subject">Subject Line</h2>
+            <div id="customFrom" class="viewer-from">From: sender@example.com</div>
+            
+            <div id="otpWrapper" class="otp-banner hide-ui">
+                <span style="font-size: 12px; font-weight: 700; text-transform:uppercase;">OTP Detected</span>
+                <span class="otp-code" id="otpDisplay">—</span>
+                <div class="flex-row">
+                    <button id="copyOtpBtn" class="btn btn-primary" style="padding: 6px 16px; font-size:13px;">Copy OTP</button>
+                    <button id="extractAllOtp" class="btn btn-secondary" style="padding: 6px 12px; font-size:13px;">Extract All</button>
+                </div>
+            </div>
+
+            <div style="margin-top: 16px; display:flex; gap:10px;">
+                <button id="openInNew" class="btn btn-secondary" style="padding: 8px 16px; font-size:13px;">Open in New Tab</button>
+                <button id="markReadBtn" class="btn btn-secondary" style="padding: 8px 16px; font-size:13px;">Mark Read</button>
+            </div>
+          </div>
+          
+          <div id="viewerBody" class="viewer-body"></div>
       </div>
+      
+      <pre id="debugArea" class="hide-ui">Ready</pre>
     </div>
   </div>
 
-  <footer>COPYRIGHT EARNING BY SOHAN.2025.</footer>
+  <footer>COPYRIGHT EARNING BY SOHAN 2025.</footer>
 </div>
 
-<!-- tiny ding -->
 <audio id="ding" src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YRAAAAD//w==" preload="auto"></audio>
-
-<!-- toast element -->
 <div id="toast" role="status" aria-live="polite"></div>
 
 <script>
-/* Final JS: no blocking popups, silent toasts, delete fixed, auto-clear on create */
+/* Final JS with UI integrations updated */
 (function(){
-  // small helper: toast
   const toastEl = document.getElementById('toast');
   let toastTimer = null;
   function showToast(msg, ms=2800){
     if(!toastEl) return;
     toastEl.textContent = msg;
     toastEl.classList.add('show');
-    toastEl.classList.remove('hide');
     if(toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=>{ toastEl.classList.add('hide'); toastTimer = setTimeout(()=>{ toastEl.classList.remove('show'); toastEl.style.display='none'; },220); }, ms);
-    toastEl.style.display='block';
+    toastTimer = setTimeout(()=>{ toastEl.classList.remove('show'); }, ms);
   }
 
   function qparam(k){ try{ return new URL(location.href).searchParams.get(k) }catch(e){return null} }
   const defaultApi = 'https://api.mail.tm';
 
-  // DOM refs
   const apiInput = document.getElementById('apiInput');
   const addrDisplay = document.getElementById('addrDisplay');
-  const tokenDisplay = document.getElementById('tokenDisplay');
   const copyAddrBtn = document.getElementById('copyAddrBtn');
   const msgsContainer = document.getElementById('msgsContainer');
   const viewerMeta = document.getElementById('viewerMeta');
@@ -236,6 +279,13 @@
   const copyOtpBtn = document.getElementById('copyOtpBtn');
   const enableNotifBtn = document.getElementById('enableNotifBtn');
   const customPassToggle = document.getElementById('customPassToggle');
+  
+  // Custom UI elements
+  const viewerEmpty = document.getElementById('viewerEmpty');
+  const viewerContent = document.getElementById('viewerContent');
+  const customSubject = document.getElementById('customSubject');
+  const customFrom = document.getElementById('customFrom');
+  const otpWrapper = document.getElementById('otpWrapper');
 
   const maybeWindow = (typeof window !== 'undefined' && window.__MAILTM_API_BASE) || qparam('api') || '';
   apiInput.value = maybeWindow;
@@ -244,7 +294,6 @@
   const notifiedOtps = new Set();
   let soundUnlocked = false;
 
-  // api fetch wrapper
   async function apiFetch(path, opts={}){
     const base = (apiInput.value && apiInput.value.trim()) || defaultApi;
     const url = base.replace(/\/$/,'') + path;
@@ -257,7 +306,6 @@
     catch(e){ return { ok: res.ok, status: res.status, json: null, text }; }
   }
 
-  // unlock sound/notification on user gesture
   async function unlockPermissions(){
     if(soundUnlocked) return;
     soundUnlocked = true;
@@ -267,86 +315,70 @@
     }
   }
   document.addEventListener('click', ()=>unlockPermissions(), { once: true });
-  enableNotifBtn.addEventListener('click', async ()=>{ await unlockPermissions(); enableNotifBtn.style.display='none'; showToast('Notifications enabled (if browser permits)'); });
+  enableNotifBtn.addEventListener('click', async ()=>{ await unlockPermissions(); enableNotifBtn.style.display='none'; showToast('Sound & Notifications Enabled'); });
 
-  // small utils
   function rnd(n=6){ const s='abcdefghijklmnopqrstuvwxyz0123456789'; let o=''; for(let i=0;i<n;i++) o+=s[Math.floor(Math.random()*s.length)]; return o; }
   function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[c])); }
-  function apiBase(){ return (apiInput.value && apiInput.value.trim()) || defaultApi; }
 
-  // clear messages helper (used when creating new account)
   function clearAllMessagesUI(){
     state.messages = [];
     state.lastCount = 0;
     state.selected = null;
-    msgsContainer.innerHTML = '<div class="muted">No messages</div>';
+    msgsContainer.innerHTML = '<div class="empty-state" style="font-size: 14px;"><p>No messages yet.</p></div>';
     viewerBody.innerHTML = '';
-    viewerMeta.textContent = 'No message selected';
+    
+    // UI Reset
+    viewerEmpty.classList.remove('hide-ui');
+    viewerContent.classList.add('hide-ui');
+    otpWrapper.classList.add('hide-ui');
+    
     otpDisplay.textContent = '—';
     notifiedOtps.clear();
   }
 
-  // Create account
   createBtn.addEventListener('click', ()=>createAccount(false));
   createRandBtn.addEventListener('click', ()=>createAccount(true));
 
   async function createAccount(useRandom=false){
-    // clear previous messages immediately
     clearAllMessagesUI();
-
     try{
       const local = useRandom ? ('user' + rnd(6)) : (document.getElementById('localInput').value.trim() || ('user' + rnd(6)));
       const pwdField = document.getElementById('pwdInput').value.trim();
       const pwd = (customPassToggle.checked && pwdField) ? pwdField : ('pw' + rnd(10));
 
-      // fetch domains
+      showToast('Generating mailbox...');
       const d = await apiFetch('/domains');
       if(!d.ok){ showToast('Domain fetch failed'); return; }
       const dom = (d.json && d.json['hydra:member'] && d.json['hydra:member'][0] && d.json['hydra:member'][0].domain) || 'mail.tm';
       const addr = `${local}@${dom}`;
 
-      // create account
       await apiFetch('/accounts', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ address: addr, password: pwd }) });
-
-      // login (get token)
       const tk = await apiFetch('/token', { method: 'POST', headers: {'content-type':'application/json'}, body: JSON.stringify({ address: addr, password: pwd }) });
+      
       if(!tk.ok || !tk.json){ showToast('Login failed'); return; }
       const token = tk.json.token || tk.json.access_token || tk.json.accessToken;
-      if(!token){ showToast('No token received'); return; }
-
-      state.token = token;
-      state.addr = addr;
-      state.pwd = pwd;
+      
+      state.token = token; state.addr = addr; state.pwd = pwd;
       addrDisplay.textContent = addr;
-      tokenDisplay.textContent = token.slice(0,8) + '...';
       copyAddrBtn.disabled = false;
-      showToast('Account created & logged in');
-
-      // load messages for new account
+      showToast('Inbox Ready!');
       await loadMessages();
     }catch(e){ console.error(e); showToast('Create error'); }
   }
 
-  // copy address silently
   copyAddrBtn.addEventListener('click', async ()=>{
     if(!state.addr){ showToast('No address to copy'); return; }
-    try{
-      await navigator.clipboard.writeText(state.addr);
-      showToast('Address copied to clipboard');
-    }catch(e){
-      // fallback: show in toast (no prompt)
-      showToast('Copy failed — address: ' + state.addr);
-    }
+    try{ await navigator.clipboard.writeText(state.addr); showToast('Address Copied'); }
+    catch(e){ showToast('Copy failed'); }
   });
 
-  // load messages
   manualRefreshBtn.addEventListener('click', loadMessages);
 
   async function loadMessages(){
     try{
-      if(!state.token){ logDebug('No token'); return; }
+      if(!state.token) return;
       const r = await apiFetch('/messages');
-      if(!r.ok){ logDebug('messages fetch failed: ' + r.status); return; }
+      if(!r.ok) return;
       const list = (r.json && (r.json['hydra:member'] || r.json['hydra:items'] || [])) || [];
       const q = (filterInput.value||'').trim().toLowerCase();
       const filtered = q ? list.filter(m => (m.subject||'').toLowerCase().includes(q) || (m.from && (m.from.address||'').toLowerCase().includes(q))) : list;
@@ -355,7 +387,6 @@
       state.messages = filtered;
       renderMessages(prevIds);
 
-      // notify new OTPs
       for(const m of filtered){
         if(prevIds.has(m.id)) continue;
         const combined = (m.intro || '') + ' ' + (m.text || '') + ' ' + (m.html || '');
@@ -365,130 +396,118 @@
 
       if(filtered.length > state.lastCount && soundToggle.checked){ try{ ding.currentTime = 0; ding.play().catch(()=>{}); }catch(e){} }
       state.lastCount = filtered.length;
-      logDebug({status:r.status, count:filtered.length});
-    }catch(e){ console.error(e); logDebug('Load messages error: ' + e); }
+    }catch(e){ console.error(e); }
   }
 
   function renderMessages(prevIds){
     msgsContainer.innerHTML = '';
-    if(!state.messages || state.messages.length===0){ msgsContainer.innerHTML = '<div class="muted">No messages</div>'; return; }
+    if(!state.messages || state.messages.length===0){ msgsContainer.innerHTML = '<div class="empty-state" style="font-size: 14px;"><p>Inbox is empty.</p></div>'; return; }
     state.messages.forEach(m => {
       const el = document.createElement('div'); el.className='msg';
       if(prevIds && !prevIds.has(m.id)) el.classList.add('new');
+      if(state.selected && state.selected.id === m.id) el.style.borderColor = 'var(--primary)';
       const from = (m.from && (m.from.address||m.from.name)) || 'unknown';
-      el.innerHTML = `<div><div class="subject">${escapeHtml(m.subject||'(no subject)')}</div><div class="from">${escapeHtml(from)}</div></div><div class="time">${new Date(m.createdAt||Date.now()).toLocaleTimeString()}</div>`;
-      el.addEventListener('click', ()=> selectMessage(m));
+      el.innerHTML = `<div class="subject">${escapeHtml(m.subject||'(no subject)')}</div><div class="from"><span>${escapeHtml(from)}</span><span>${new Date(m.createdAt||Date.now()).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>`;
+      el.addEventListener('click', ()=> selectMessage(m, el));
       msgsContainer.appendChild(el);
     });
   }
 
-  // select message
-  async function selectMessage(m){
+  async function selectMessage(m, el){
     try{
+      // Highlight selection
+      document.querySelectorAll('.msg').forEach(node => node.style.borderColor = 'transparent');
+      if(el) el.style.borderColor = 'var(--primary)';
+
       const r = await apiFetch('/messages/' + m.id);
-      if(!r.ok){ logDebug('message fetch failed: ' + r.status); showToast('Failed to fetch message'); return; }
+      if(!r.ok){ showToast('Failed to fetch message details'); return; }
+      
       const msg = r.json || null;
       state.selected = msg;
-      viewerMeta.textContent = `${msg.subject || '(no subject)'} — From: ${msg.from && (msg.from.address||msg.from.name) || 'unknown'}`;
-      viewerBody.innerHTML = msg.html || ('<pre style="white-space:pre-wrap;">' + escapeHtml(msg.text || '(no body)') + '</pre>');
+      
+      // Update custom UI
+      viewerEmpty.classList.add('hide-ui');
+      viewerContent.classList.remove('hide-ui');
+      customSubject.textContent = msg.subject || '(no subject)';
+      customFrom.textContent = `From: ${msg.from && (msg.from.address||msg.from.name) || 'unknown'}`;
+      
+      viewerBody.innerHTML = msg.html || ('<pre style="white-space:pre-wrap; font-family:inherit;">' + escapeHtml(msg.text || '(no body)') + '</pre>');
+      
       const otp = extractOtp(msg.html || msg.text || '');
       otpDisplay.textContent = otp || '—';
-      if(otp) notifyOtp(otp, msg.subject || '');
+      
+      if(otp) {
+          otpWrapper.classList.remove('hide-ui');
+          notifyOtp(otp, msg.subject || '');
+      } else {
+          otpWrapper.classList.add('hide-ui');
+      }
     }catch(e){ console.error(e); showToast('Select message error'); }
   }
 
-  // extract OTP helper (4-8 digits)
   function extractOtp(text){ if(!text) return null; const m = String(text).match(/(?:\b|[^0-9])(\d{4,8})(?:\b|[^0-9])/); return m ? m[1] : null; }
 
-  // notify otp
   function notifyOtp(otp, subject){
-    if(!otp) return;
-    if(notifiedOtps.has(otp)) return;
+    if(!otp || notifiedOtps.has(otp)) return;
     notifiedOtps.add(otp);
-
-    if(soundToggle && soundToggle.checked){
-      try{ ding.currentTime = 0; ding.play().catch(()=>{}); }catch(e){}
-    }
-    if("Notification" in window && Notification.permission === 'granted'){
-      try{ const n = new Notification('OTP received', { body: (subject? subject + ' — ' : '') + otp, tag: 'mailtm-otp-' + otp }); n.onclick = ()=> window.focus(); }catch(e){}
-    }
-    // also show small toast
-    showToast('OTP received: ' + otp, 3000);
+    if(soundToggle && soundToggle.checked){ try{ ding.currentTime = 0; ding.play().catch(()=>{}); }catch(e){} }
+    if("Notification" in window && Notification.permission === 'granted'){ try{ const n = new Notification('OTP Received', { body: otp, tag: 'mailtm-otp-'+otp }); n.onclick=()=>window.focus(); }catch(e){} }
+    showToast('OTP Detected: ' + otp);
   }
 
-  // Extract All OTPs (auto-copy first OTP silently, no prompt)
   extractAllOtp.addEventListener('click', async ()=>{
     try{
       const found = [];
       (state.messages || []).forEach(m => {
         const combined = (m.intro || '') + ' ' + (m.text || '') + ' ' + (m.html || '');
         const o = extractOtp(combined);
-        if(o) found.push({ otp: o, subject: m.subject || '' });
+        if(o) found.push(o);
       });
-      if(found.length === 0){ showToast('No OTPs found'); return; }
-      const firstOtp = found[0].otp;
-      // copy silently
-      try{
-        await navigator.clipboard.writeText(firstOtp);
-        otpDisplay.textContent = firstOtp;
-        showToast('OTP copied: ' + firstOtp);
-      }catch(e){
-        // can't copy: just set viewer and show toast
-        otpDisplay.textContent = firstOtp;
-        showToast('OTP (copy failed) — ' + firstOtp);
-      }
-      // if there are more, show small toast with count (not popup)
-      if(found.length > 1) showToast((found.length) + ' OTP(s) found; first copied', 3200);
-    }catch(err){ console.error(err); showToast('Error extracting OTPs'); }
+      if(found.length === 0){ showToast('No OTPs found in inbox'); return; }
+      const firstOtp = found[0];
+      try{ await navigator.clipboard.writeText(firstOtp); showToast('Extracted OTP Copied'); }
+      catch(e){ showToast('OTP found but copy failed'); }
+    }catch(err){ showToast('Error extracting'); }
   });
 
-  // copy OTP button (silent)
   copyOtpBtn.addEventListener('click', async ()=>{
     const t = otpDisplay.textContent;
-    if(!t || t === '—'){ showToast('No OTP to copy'); return; }
-    try{ await navigator.clipboard.writeText(t); showToast('OTP copied'); } catch(e){ showToast('Copy failed — OTP: ' + t); }
+    if(!t || t === '—') return;
+    try{ await navigator.clipboard.writeText(t); showToast('OTP Copied'); } catch(e){ showToast('Copy failed'); }
   });
 
-  // open in new tab
-  openInNew.addEventListener('click', ()=>{ if(!state.selected) { showToast('Select a message first'); return; } const w = window.open(); w.document.write(state.selected.html || escapeHtml(state.selected.text || '')); });
+  openInNew.addEventListener('click', ()=>{ if(!state.selected) return; const w = window.open(); w.document.write(state.selected.html || escapeHtml(state.selected.text || '')); });
+  markReadBtn.addEventListener('click', ()=>{ showToast('Marked as read'); });
+  clearBtn.addEventListener('click', ()=>{ clearAllMessagesUI(); showToast('List cleared locally'); });
+  filterInput.addEventListener('input', ()=> { if(state.token) renderMessages(new Set((state.messages||[]).map(x=>x.id))); loadMessages(); });
 
-  markReadBtn.addEventListener('click', ()=>{ showToast('Marked read (local)'); });
-
-  // clear UI
-  clearBtn.addEventListener('click', ()=>{ clearAllMessagesUI(); showToast('Cleared messages'); });
-
-  // delete account: improved logic using apiFetch for DELETE so Authorization header included
   delAccountBtn.addEventListener('click', async ()=>{
-    if(!state.addr || !state.token){ showToast('No account to delete'); return; }
-    // best-effort delete; no blocking prompt (we avoid alert)
+    if(!state.addr || !state.token){ showToast('No account active'); return; }
     try{
-      // fetch accounts and find matching
       const r = await apiFetch('/accounts');
-      if(!r.ok){ showToast('Failed to fetch accounts'); return; }
       const items = r.json && (r.json['hydra:member'] || []);
       const acct = (items || []).find(a => a.address === state.addr);
-      if(!acct){ showToast('Account not found on server'); return; }
+      if(!acct){ showToast('Account not found'); return; }
       const del = await apiFetch('/accounts/' + acct.id, { method: 'DELETE' });
-      if(del.ok){ showToast('Account deleted'); clearAllMessagesUI(); state.token = null; state.addr = null; addrDisplay.textContent = '—'; tokenDisplay.textContent = '—'; copyAddrBtn.disabled = true; }
-      else { showToast('Delete failed: ' + del.status); }
-    }catch(e){ console.error(e); showToast('Delete error'); }
+      if(del.ok){ 
+        showToast('Account Securely Deleted'); 
+        clearAllMessagesUI(); 
+        state.token = null; state.addr = null; 
+        addrDisplay.textContent = 'Click Create to generate'; 
+        copyAddrBtn.disabled = true; 
+      }
+    }catch(e){ console.error(e); }
   });
 
-  // polling control
   togglePollBtn.addEventListener('click', ()=>{ if(state.polling) stopPolling(); else startPolling(); });
-  function startPolling(){ if(state.pollHandle) clearInterval(state.pollHandle); const ms = Math.max(500, parseInt(intervalInput.value)||2000); state.pollHandle = setInterval(()=> loadMessages().catch(()=>{}), ms); togglePollBtn.textContent = 'Stop Auto'; state.polling = true; }
-  function stopPolling(){ if(state.pollHandle) clearInterval(state.pollHandle); state.pollHandle = null; togglePollBtn.textContent = 'Start Auto'; state.polling = false; }
+  function startPolling(){ if(state.pollHandle) clearInterval(state.pollHandle); const ms = Math.max(500, parseInt(intervalInput.value)||2000); state.pollHandle = setInterval(()=> loadMessages().catch(()=>{}), ms); togglePollBtn.textContent = 'Auto: ON'; togglePollBtn.style.color = 'var(--success)'; state.polling = true; }
+  function stopPolling(){ if(state.pollHandle) clearInterval(state.pollHandle); state.pollHandle = null; togglePollBtn.textContent = 'Auto: OFF'; togglePollBtn.style.color = 'var(--text-muted)'; state.polling = false; }
+  
   startPolling();
-
   document.addEventListener('visibilitychange', ()=>{ if(document.hidden && state.pollHandle){ clearInterval(state.pollHandle); } else if(state.polling){ const ms = Math.max(500, parseInt(intervalInput.value)||2000); state.pollHandle = setInterval(()=> loadMessages().catch(()=>{}), ms); } });
 
-  // small debug logger
-  function logDebug(o){ try{ debugArea.textContent = (typeof o === 'string') ? o : JSON.stringify(o, null, 2); } catch(e){} }
-
-  // initial silent ping (no UI)
   (async ()=>{ try{ await apiFetch('/domains'); }catch(e){} })();
-
-})(); // IIFE end
+})();
 </script>
 </body>
 </html>
